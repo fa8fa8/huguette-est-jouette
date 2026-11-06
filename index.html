@@ -63,7 +63,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(ellips
 .tile svg{width:100%;height:100%;display:block;pointer-events:none;}
 .tile.blocked::after{content:"";position:absolute;inset:0;border-radius:inherit;background:rgba(70,50,20,.22);pointer-events:none;}
 .tile.sel{background:#ffe07a;border-color:#c79a00;transform:translate(-2px,-3px);}
-.tile.hint{animation:pulse .5s ease-in-out 4;}
+.tile.hint{background:#ffe07a;outline:4px solid #ff8c00;outline-offset:1px;animation:hintbob .6s ease-in-out infinite;z-index:3000!important;}
+@keyframes hintbob{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-4px) scale(1.08)}}
 .tile.gone{opacity:0;transform:scale(.6);pointer-events:none;}
 .tile.off{display:none;}
 .tile.shake{animation:shake .3s;}
@@ -401,7 +402,7 @@ function hint(){
   for(const k in g)if(g[k].length>=2){
     const [a,b]=g[k];clearTimeout(hintTimer);
     [a,b].forEach(i=>{els[i].classList.remove('hint');void els[i].offsetWidth;els[i].classList.add('hint');});
-    hintTimer=setTimeout(()=>{els[a].classList.remove('hint');els[b].classList.remove('hint');},2100);
+    hintTimer=setTimeout(()=>{els[a].classList.remove('hint');els[b].classList.remove('hint');},5000);
     return;
   }
   checkEnd();
