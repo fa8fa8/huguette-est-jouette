@@ -1024,7 +1024,7 @@ function build(){
 function renderList(){
   listEl.innerHTML='';
   S.words.forEach((w,i)=>{const d=document.createElement('div');d.className='wl'+(w.found?' found':'');d.dataset.i=i;
-    d.innerHTML=`<span class="ww">${w.w}</span>`+(S.cat==='*'?`<span class="wcat">${w.cat}</span>`:'');
+    d.innerHTML=`<span class="ww">${w.w}</span>`;
     if(w.found)d.style.setProperty('--wc',COLORS[i%COLORS.length]);listEl.appendChild(d);});
   fitList();
 }
