@@ -99,6 +99,8 @@ html,body{margin:0;height:100%;overflow:hidden;background:radial-gradient(ellips
 .slot.hint{animation:slotglow .55s ease-in-out 4;}
 @keyframes slotglow{0%,100%{background:transparent}50%{background:rgba(255,210,63,.45)}}
 
+#cdToast{position:absolute;left:50%;bottom:16px;transform:translate(-50%,20px);max-width:92%;background:rgba(20,30,25,.94);color:#fff;font-size:17px;line-height:1.35;text-align:center;padding:12px 18px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.45);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:6000;}
+#cdToast.show{opacity:1;transform:translate(-50%,0);}
 /* ----- Dialogue ----- */
 #modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:99999;padding:20px;}
 #modal.show{display:flex;}
@@ -823,6 +825,18 @@ function pileAt(px,py){
   if(G==='k')return i>=3?{k:'f',i:i-3}:null;
   return i<4?{k:'c',i}:{k:'f',i:i-4};
 }
+function fitsNoLimit(cards,dest){if(dest.k!=='t')return false;const p=S.t[dest.i];if(!p.length)return true;const top=p[p.length-1],b=cards[0];return rank(top)===rank(b)+1&&red(top)!==red(b);}
+function limitMsg(cards,src,dest){
+  if(G!=='f'||cards.length<2)return false;
+  const ds=dest?[dest]:S.t.map((_,i)=>({k:'t',i})).filter(d=>!(d.i===src.i&&src.k==='t'));
+  const d=ds.find(x=>fitsNoLimit(cards,x));if(!d)return false;
+  const m=maxMove(!S.t[d.i].length);
+  toast(`Pas assez de cases libres pour déplacer ${cards.length} cartes d'un coup.<br>Pour l'instant : ${m} carte${m>1?'s':''} maximum.`);
+  return true;
+}
+let toastT=null;
+function toast(html){let t=document.getElementById('cdToast');if(!t){t=document.createElement('div');t.id='cdToast';wrap.appendChild(t);}
+  t.innerHTML=html;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3500);}
 function shake(list){list.forEach(e=>{e.classList.remove('shake');void e.offsetWidth;e.classList.add('shake');setTimeout(()=>e.classList.remove('shake'),320);});}
 board.addEventListener('pointerdown',e=>{
   if(busy||!S||drag)return;const pend=pending;clearHint();
@@ -849,13 +863,13 @@ function endDrag(e,cancel){
     let dest=null;
     if(d.pend&&d.pend.cards[0]===d.cards[0]&&canDrop(d.pend.cards,d.loc,d.pend.dest)){dest=d.pend.dest;d.cards=d.pend.cards;}
     if(!dest)dest=bestDest(d.cards,d.loc);
-    if(dest)move(d.loc,d.cards,dest);else shake(d.cards.map(c=>els[c]));
+    if(dest)move(d.loc,d.cards,dest);else{limitMsg(d.cards,d.loc,null);shake(d.cards.map(c=>els[c]));}
     return;
   }
   d.cards.forEach(c=>{const el=els[c];el.classList.add('noanim1');el.style.left=(parseFloat(el.style.left)+dx)+'px';el.style.top=(parseFloat(el.style.top)+dy)+'px';el.style.transform='';el.classList.remove('drag');});
   void board.offsetWidth;d.cards.forEach(c=>els[c].classList.remove('noanim1'));
   const dest=cancel?null:pileAt(d.ox+dx+L.cw/2,d.oy+dy+L.ch*.3);
-  if(dest&&canDrop(d.cards,d.loc,dest))move(d.loc,d.cards,dest);else render();
+  if(dest&&canDrop(d.cards,d.loc,dest))move(d.loc,d.cards,dest);else{if(dest)limitMsg(d.cards,d.loc,dest);render();}
 }
 board.addEventListener('pointerup',e=>endDrag(e,false));
 board.addEventListener('pointercancel',e=>endDrag(e,true));
