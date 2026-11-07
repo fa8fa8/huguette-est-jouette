@@ -460,7 +460,7 @@ document.getElementById('mjUndo').onclick=undo;
 document.getElementById('mjHint').onclick=hint;
 document.getElementById('mjShuffle').onclick=()=>modal('Mélanger les tuiles restantes ?',[{l:'Oui, mélanger',p:1,f:doShuffle},{l:'Non'}]);
 document.getElementById('mjNew').onclick=()=>modal('Commencer une nouvelle partie ?',[{l:'Oui',p:1,f:newGame},{l:'Non'}]);
-function open(){if(!S){S=load();if(S)renderFaces();}layout();if(S)update();else newGame();}
+function open(){if(!S){S=load();if(S)renderFaces();}layout();if(S&&!S.alive.some(Boolean))S=null;if(S)update();else newGame();}
 return{open,layout,faceSVG};
 })();
 
@@ -936,7 +936,7 @@ document.getElementById('cdNew').onclick=newGameAsk;
 function open(g){
   G=g;busy=false;drag=null;clearHint();
   document.getElementById('cdTitle').textContent=g==='k'?'Solitaire':'FreeCell';
-  S=load(g);setupSlots();layout();
+  S=load(g);if(S&&won())S=null;setupSlots();layout();
   if(!S)newGame();else{render(true);if(canAutoFinish()&&!won())autoFinish();}
 }
 return{open,layout,cardHTML};
@@ -1128,17 +1128,18 @@ function openSetup(){
     b.onclick=()=>{const pr=Object.assign(prefs(),{cat:name});setPrefs(pr);setupEl.classList.remove('show');start(pr.level,name);};th.appendChild(b);};
   mk('*','Toutes catégories mélangées');
   CATS.forEach(c=>mk(c.name,c.name));
-  setupEl.querySelector('.close').style.display=S?'':'none';
+  const cl=setupEl.querySelector('.close');cl.textContent=S?'Retour à la grille en cours':"Retour à l'accueil";
   setupEl.classList.add('show');
 }
 function start(level,cat){S=generate(level,cat);pendingStart=null;save();build();layout();}
-setupEl.querySelector('.close').onclick=()=>setupEl.classList.remove('show');
+setupEl.querySelector('.close').onclick=()=>{setupEl.classList.remove('show');if(!S)goHome();};
 document.getElementById('wdHint').onclick=hint;
 document.getElementById('wdNew').onclick=openSetup;
 
 async function open(){
   await loadWords();
   if(!S){S=load();if(S)build();}
+  if(S&&S.words.every(x=>x.found)){S=null;gridEl.innerHTML='';listEl.innerHTML='';svg.innerHTML='';try{localStorage.removeItem(SAVE);}catch(e){}}
   layout();
   if(!S)openSetup();
 }
