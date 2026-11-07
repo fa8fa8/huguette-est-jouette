@@ -1,6 +1,6 @@
 // Hors ligne : la page est d'abord demandée au réseau (pour recevoir les mises à jour),
 // la copie locale ne sert que si la tablette n'a pas Internet.
-const CACHE='huguette-v5';
+const CACHE='huguette-v6';
 const FILES=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./icon-180.png','./mots.txt'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(n=>n!==CACHE).map(n=>caches.delete(n)))).then(()=>self.clients.claim()));});

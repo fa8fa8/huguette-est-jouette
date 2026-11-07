@@ -8,7 +8,14 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
-<script>if('serviceWorker' in navigator&&location.protocol==='https:')window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
+<script>
+if('serviceWorker' in navigator&&location.protocol==='https:'){
+  // quand une nouvelle version prend la main, on recharge une fois pour l'afficher tout de suite
+  const had=!!navigator.serviceWorker.controller;let done=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!done){done=true;location.reload();}});
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{}));
+}
+</script>
 
 <style>
 :root{--bg:#21603f;--bg2:#163f2b;--bar:#123826;--btn:#f6efdc;--btnTxt:#2b2414;}
