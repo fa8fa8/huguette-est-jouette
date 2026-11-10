@@ -10,10 +10,19 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <script>
 if('serviceWorker' in navigator&&location.protocol==='https:'){
-  // quand une nouvelle version prend la main, on recharge une fois pour l'afficher tout de suite
-  const had=!!navigator.serviceWorker.controller;let done=false;
-  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(had&&!done){done=true;location.reload();}});
-  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{}));
+  // Une nouvelle version a pris la main : on propose de recharger (sans interrompre une partie en cours).
+  const had=!!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(!had||document.getElementById('updBar'))return;
+    const b=document.createElement('button');b.id='updBar';b.textContent='Nouvelle version — toucher pour l\u2019afficher';
+    b.style.cssText='position:fixed;left:50%;bottom:calc(14px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:100000;max-width:92%;padding:12px 20px;border:none;border-radius:14px;background:#f6efdc;color:#2b2414;font:700 17px system-ui,sans-serif;box-shadow:0 6px 18px rgba(0,0,0,.4);';
+    b.onclick=()=>{try{if(window.cameFromHome)sessionStorage.setItem('cfh','1');}catch(e){}location.reload();};
+    document.body.appendChild(b);
+  });
+  window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').then(r=>{
+    // l'app revient souvent de l'arrière-plan sans rechargement : on vérifie à chaque retour
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')r.update().catch(()=>{});});
+  }).catch(e=>console.warn('Service worker :',e)));
 }
 </script>
 
@@ -222,7 +231,7 @@ function modal(msg,acts){
     b.onclick=()=>{M.classList.remove('show');a.f&&a.f();};box.appendChild(b);});
   M.classList.add('show');
 }
-let cameFromHome=false;
+var cameFromHome=(()=>{try{const v=sessionStorage.getItem('cfh')==='1';sessionStorage.removeItem('cfh');return v;}catch(e){return false;}})();
 function goHome(){if(cameFromHome){cameFromHome=false;history.back();}else location.hash='';}
 </script>
 <script>
